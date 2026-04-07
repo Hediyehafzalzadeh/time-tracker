@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { CircleCheck, Edit, Pause, Play, Timer, Trash } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { addTask, deleteTask } from "@/app/actions";
+import ManualDialog from "./ManualDialog";
+import ConfirmationDialog from "./ConfirmationDialog";
 
 const Logger = ({ user, userTasks }) => {
   const [isRunning, setIsRunning] = useState(false);
@@ -18,6 +20,9 @@ const Logger = ({ user, userTasks }) => {
   const [currentTaskName, setCurrentTaskName] = useState("");
   const [currentTaskTag, setCurrentTaskTag] = useState("");
   const [loading, setLoading] = useState(false);
+  const [manualDialogOpen, setManualDialogOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
 
   useEffect(() => {
     if (!isRunning) return;
@@ -30,17 +35,7 @@ const Logger = ({ user, userTasks }) => {
 
   useEffect(() => {
     setTasks(userTasks);
-  }, [userTasks]);
-
-  const convertToRealFormat = (time) => {
-    let hours = Math.floor(time / 3600);
-    let minutes = Math.floor((time % 3600) / 60);
-    let seconds = Math.floor(time % 60);
-
-    return `${hours.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-  };
+  }, []);
 
   const startTimer = () => {
     if (!user) {
@@ -105,6 +100,7 @@ const Logger = ({ user, userTasks }) => {
       { name: res.name, duration: res.duration, tag: res.tag },
     ]);
     toast("Task saved successfully");
+
     console.log(res);
     console.log(newTask);
     setLoading(false);
@@ -115,18 +111,9 @@ const Logger = ({ user, userTasks }) => {
   };
 
   const deleteTaskHandler = async (task) => {
-    toast("Are you sure you want to delete this task ? ", {
-      position: "top-center",
-      action: {
-        label: "Yes",
-        onClick: () => {
-              setLoading(true);
-
-        },
-      },
-    });
-
+    setLoading(true);
     const res = await deleteTask(task);
+    console.log(res);
     setTasks(
       tasks.filter(
         (t) =>
@@ -162,6 +149,14 @@ const Logger = ({ user, userTasks }) => {
               placeholder={"Task's category ..."}
             ></Input>
           </Field>
+            <ManualDialog
+              onAdd={(task) => {
+                setManualDialogOpen(false);
+                saveTask((task.finishedAt.getTime() - task.startedAt.getTime()) / 1000);
+                console.log(task);
+              }}
+            />
+          
         </div>
         <div className="my-auto ml-5">
           <div className="mb-5 ">{!startedAt ? "00:00:00" : showTime()}</div>
@@ -210,31 +205,29 @@ const Logger = ({ user, userTasks }) => {
         </div>
 
         <div className="flex flex-col ml-5 gap-2">
-          {tasks.map(({ duration, name, tag }) => (
-            <div className="flex flex-row bg-white p-2 rounded-lg" key={name+duration}>
+          {tasks.map((task) => (
+            <div className="flex flex-row bg-white p-2 rounded-lg" key={task.name+task.duration}>
               <div className="flex flex-row basis-1/2 items-center">
                 <Timer className="mx-3 text-gray-500" />
 
-                <p className="text-2xl mr-5">{name} </p>
-                {tag && (
+                <p className="text-2xl mr-5">{task.name} </p>
+                {task.tag && (
                   <span className="text-sm text-gray-700 bg-red-200 rounded-full px-2 py-1">
-                    {tag}
+                    {task.tag}
                   </span>
                 )}
               </div>
               <div className="flex flex-col items-end basis-1/2">
-                <p className=" text-2xl  ">{convertToRealFormat(duration)}</p>
+                <p className=" text-2xl  ">{convertToRealFormat(task.duration)}</p>
               </div>
+              <ConfirmationDialog
+                open={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                onConfirm={() => deleteTaskHandler(task)}
+                
+              />
               <Button
-                onClick={() => deleteTaskHandler({ name, duration, tag })}
-                size="lg"
-                className="mx-3 rounded-full bg-red-300"
-                variant="outline"
-              >
-                <Trash />
-              </Button>
-              <Button
-                onClick={() => editTaskHandler({ name, duration, tag })}
+                onClick={() => editTaskHandler(task)}
                 size="lg"
                 className="mx-3 rounded-full bg-green-100"
                 variant="outline"
@@ -250,3 +243,14 @@ const Logger = ({ user, userTasks }) => {
 };
 
 export default Logger;
+
+
+export function convertToRealFormat(time) {
+    let hours = Math.floor(time / 3600);
+    let minutes = Math.floor((time % 3600) / 60);
+    let seconds = Math.floor(time % 60);
+
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+  };

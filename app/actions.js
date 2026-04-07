@@ -18,13 +18,12 @@ export async function getTasks(){
         }
     }
 
-
 export async function getTodaysTasks(){
 
         try{
             const supabase = await createClient();
             const today = new Date().toISOString().split("T")[0];
-            const { data , error } = await supabase.from("tasks").select("*").gte("created_at", today).order("created_at" , {ascending : false});
+            const { data , error } = await supabase.from("tasks").select().gte("created_at", today).order("created_at" , {ascending : false});
             if (error) throw error ; 
             return data || [] ; 
 
@@ -35,21 +34,19 @@ export async function getTodaysTasks(){
     }
 
 export async function getHistoryByDate(date){
+    const tomorrow = new Date(new Date(date).getTime() + 24 * 60 * 60 * 1000).toISOString().split("T")[0];
     
 try{
             const supabase = await createClient();
-            const today = new Date().toISOString().split("T")[0];
-            const { data , error } = await supabase.from("tasks").select("*").gte("created_at", today).order("created_at" , {ascending : false});
+            const { data , error } = await supabase.from("tasks").select().gte("created_at", date).lt("created_at", tomorrow).order("created_at" , {ascending : false});
             if (error) throw error ; 
             return data || [] ; 
 
         }catch ( error) {
-            console.error("Get today's tasks error :" , error) ;
+            console.error("Get history by date error :" , error) ;
             return [] ; 
         }
     }
-
-
 
 export async function signOut() {
     const supabase = await createClient();
@@ -58,7 +55,6 @@ export async function signOut() {
     redirect("/");
     
 }
-
 
 export async function addTask(task ) {
     if(!task) throw new Error("no task provided");
@@ -106,10 +102,9 @@ export async function deleteTask(task ) {
             if (!user) {
                 throw new Error("Not authenticated");
             }
-    const { data , error } = await supabase.from("tasks").delete("*").eq("id" , task.id)
+    const { data , error } = await supabase.from("tasks").delete().eq("id" , task.id)
     .select()
     .single();
-    return {name: data.name , duration: data.duration} ;
  
     
 
