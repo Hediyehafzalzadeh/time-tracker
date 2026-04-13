@@ -5,6 +5,9 @@ import { createClient } from "@/utils/supabase/server";
 import { getTasks , getTodaysTasks} from "@/app/actions";
 import { Toaster } from "@/components/ui/sonner"
 import {TaskHistoryButton} from "@/components/TaskHistoryButton";
+import ShowProgressButton from "@/components/ShowProgressButton";
+
+
 export default async function Home() {
    
    const supabase = await createClient();
@@ -20,6 +23,10 @@ export default async function Home() {
          <div className="m-5 flex flex-row justify-end">
             {user &&
              <TaskHistoryButton />
+             }
+             {user && <ShowProgressButton/>
+              
+             
              }
             <LoginButton user={user} />
             

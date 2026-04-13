@@ -11,6 +11,9 @@ import ManualDialog from "./ManualDialog";
 import ConfirmationDialog from "./ConfirmationDialog";
 import { set } from "date-fns";
 import EditTaskDialog from "./EditTaskDialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
+import AddCategories from "./AddCategories";
 
 const Logger = ({ user, userTasks }) => {
   const [isRunning, setIsRunning] = useState(false);
@@ -187,12 +190,17 @@ const Logger = ({ user, userTasks }) => {
     setLoading(false);
   };
 
+  const categories = [
+    ...new Set(tasks.map((task) => task.tag).filter((tag) => tag)),
+  ];
+
   return (
-    <div className="mx-auto max-w-7xl mx-auto my-10 text-2xl">
-      <div className="flex flex-row text-center mx-auto mb-5 bg-mauve-100 p-5 rounded-lg w-full max-w-1/2 ">
+    <div className="mx-auto flex max-w-7xl mx-auto my-10 text-2xl gap-5 ">
+      <div className="flex basis-1/2 text-center mx-auto mb-5 bg-mauve-100 p-5 rounded-lg w-full  ">
         <div>
-          <Field className="w-64 m-10">
-            <FieldLabel htmlFor="input-demo-api-key">Task's Name</FieldLabel>
+          <Field className="w-64 m-10 ">
+            <FieldLabel className="font-semibold" htmlFor="input-demo-api-key">Task's Name</FieldLabel>
+            
             <Input
               required
               value={currentTaskName}
@@ -200,17 +208,7 @@ const Logger = ({ user, userTasks }) => {
               placeholder={"Task's name ..."}
             ></Input>
           </Field>
-          <Field className="w-64 m-10">
-            <FieldLabel htmlFor="input-demo-api-key">
-              Task's Category
-            </FieldLabel>
-            <Input
-              required
-              value={currentTaskTag}
-              onChange={(e) => setCurrentTaskTag(e.target.value)}
-              placeholder={"Task's category ..."}
-            ></Input>
-          </Field>
+          <AddCategories categories={categories} currentTaskTag={currentTaskTag} setCurrentTaskTag={setCurrentTaskTag} />
           <ManualDialog
             className=""
             open={!!manualDialogOpen}
@@ -264,7 +262,7 @@ const Logger = ({ user, userTasks }) => {
         </div>
       </div>
 
-      <div className=" flex flex-col text-xl bg-mauve-100 p-5 rounded-lg mx-auto w-full max-w-3/4">
+      <div className=" flex flex-col basis-1/2  text-xl bg-mauve-100 p-5 rounded-lg mx-auto w-full ">
         <p className=" text-center bg-rose-100 font-bold text-red-500">
           {tasks.length > 0
             ? "total time : " +
