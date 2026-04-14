@@ -2,7 +2,7 @@
 import  Logger from "@/components/Logger"
 import LoginButton  from "@/components/LoginButton"
 import { createClient } from "@/utils/supabase/server";
-import { getTasks , getTodaysTasks} from "@/app/actions";
+import { getCategories, getTasks , getTodaysTasks} from "@/app/actions";
 import { Toaster } from "@/components/ui/sonner"
 import {TaskHistoryButton} from "@/components/TaskHistoryButton";
 import ShowProgressButton from "@/components/ShowProgressButton";
@@ -15,7 +15,7 @@ export default async function Home() {
   const taskData = user ? await getTasks() : [] ;
    const todaysTaskData = user ? await getTodaysTasks() : [] ;
   const userTasks = taskData.map(({name , duration}) => ({name , duration})) || [] ;
-  
+  const categories = user ? await getCategories() : [] ;
 
   return (
      <div className='main-h-screen'>
@@ -33,7 +33,7 @@ export default async function Home() {
             </div>
             
       </header>
-        <Logger user={user} userTasks={todaysTaskData} />
+        <Logger user={user} userTasks={todaysTaskData} categories={categories} />
         <Toaster />
      </div>
     

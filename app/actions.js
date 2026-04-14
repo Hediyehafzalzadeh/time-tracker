@@ -153,3 +153,50 @@ export async function updateTask(task , updatedTask ) {
     
     
 }
+
+export async function getCategories(){
+        try{
+            const supabase = await createClient();
+            const { data , error } = await supabase.from("categories").select("*").order("created_at" , {ascending : false});
+            if (error) throw error ; 
+            return data || [] ; 
+
+        }catch ( error) {
+            console.error("Get categories error :" , error) ;
+            return [] ; 
+        }
+    }
+
+export async function addCategory(category ) {
+    if(!category) throw new Error("no category provided");
+
+    try{
+    const supabase = await createClient();
+    const {
+            data : { user}, } 
+            = await supabase.auth.getUser(); 
+            if (!user) {
+                throw new Error("Not authenticated");
+            }
+    const { data , error } = await supabase.from("categories").upsert({
+        user_id : user.id,
+        name : category.name , 
+        created_at : new Date().toISOString() ,
+
+
+    })
+    .select()
+    .single();
+    return {name: data.name } ;
+ 
+    
+
+    }catch (error){
+        console.error("error in addCategories :", error);
+            return {error : error.message || "Failed to add category"}
+    }
+
+
+    
+    
+}

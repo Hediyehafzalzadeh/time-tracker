@@ -15,7 +15,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import AddCategories from "./AddCategories";
 
-const Logger = ({ user, userTasks }) => {
+const Logger = ({ user, userTasks , categories}) => {
   const [isRunning, setIsRunning] = useState(false);
   const [counter, setCounter] = useState(0);
   const [tasks, setTasks] = useState([]);
@@ -190,13 +190,11 @@ const Logger = ({ user, userTasks }) => {
     setLoading(false);
   };
 
-  const categories = [
-    ...new Set(tasks.map((task) => task.tag).filter((tag) => tag)),
-  ];
+
 
   return (
-    <div className="mx-auto flex max-w-7xl mx-auto my-10 text-2xl gap-5 ">
-      <div className="flex basis-1/2 text-center mx-auto mb-5 bg-mauve-100 p-5 rounded-lg w-full  ">
+    <div className="mx-auto flex max-w-7xl mx-auto items-stretch my-10 text-2xl gap-5 h-auto flex-col md:flex-row">
+      <div className="flex basis-1/2 h-full text-center mx-auto mb-5 bg-mauve-100 p-5 rounded-lg  ">
         <div>
           <Field className="w-64 m-10 ">
             <FieldLabel className="font-semibold" htmlFor="input-demo-api-key">Task's Name</FieldLabel>
@@ -262,8 +260,8 @@ const Logger = ({ user, userTasks }) => {
         </div>
       </div>
 
-      <div className=" flex flex-col basis-1/2  text-xl bg-mauve-100 p-5 rounded-lg mx-auto w-full ">
-        <p className=" text-center bg-rose-100 font-bold text-red-500">
+      <div className="md:text-left md:text-xl text-sm flex flex-col basis-1/2 h-full my-auto text-xl bg-mauve-100 p-5 rounded-lg mx-auto  ">
+        <p className="text-center    bg-rose-100 font-bold text-red-500">
           {tasks.length > 0
             ? "total time : " +
               convertToRealFormat(
@@ -295,7 +293,7 @@ const Logger = ({ user, userTasks }) => {
                 )}
               </div>
               <div className="flex flex-col items-end basis-1/2">
-                <p className=" text-2xl  ">
+                <p className="text-2xl ">
                   {convertToRealFormat(task.duration)}
                 </p>
               </div>
