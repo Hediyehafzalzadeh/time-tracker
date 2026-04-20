@@ -24,6 +24,8 @@ const chartConfig = {};
 
 const ProgressChart = ({ tasks, categories }) => {
   const categoryMap = {};
+  const taskMap ={};
+
   const [activeButton, setActiveButton] = React.useState(null);
   const chartData = tasks.map((t) => ({
     date: new Date(t.created_at),
@@ -41,9 +43,7 @@ const ProgressChart = ({ tasks, categories }) => {
 
   const initializedDataForNameBased = days.map((day) => ({
     date: day,
-    dayTasks: [],
-    dayTasksDuration: [],
-    total: 0,
+    dayTasks: {},
   }));
 
   for (const task of chartData) {
@@ -52,9 +52,11 @@ const ProgressChart = ({ tasks, categories }) => {
     const target = initializedDataForNameBased.find((d) => d.date === dayName);
 
     if (target) {
-      target.total += task.duration;
-      target.dayTasks.push(task);
-      target.dayTasksDuration.push(task.duration);
+      target.dayTasks[task.name] = {
+        duration: task.duration,
+        category: task.category,
+      };
+   
     }
   }
 
@@ -89,6 +91,23 @@ const ProgressChart = ({ tasks, categories }) => {
       categoryMap[name] = value.color;
     });
   });
+  initializedDataForNameBased.forEach((day) => {
+    Object.entries(day.dayTasks).forEach(([name, value]) => {
+      taskMap[name] = value.duration;
+    });
+  });
+
+
+  const taskDataFinal = initializedDataForNameBased.map((day) => {
+    const row = { date: day.date };
+
+    Object.entries(day.dayTasks).forEach(([name, value]) => {
+      row[name] = value.duration;
+    });
+
+    return row;
+  });
+
 
   const chartDataFinal = initializedDataForCategoryBased.map((day) => {
     const row = { date: day.date };
@@ -135,31 +154,18 @@ const ProgressChart = ({ tasks, categories }) => {
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig}>
-              <BarChart accessibilityLayer data={initializedDataForNameBased}>
+              <BarChart accessibilityLayer data={taskDataFinal}>
                 <XAxis
                   dataKey="date"
                   tickLine={false}
                   tickMargin={10}
                   axisLine={false}
                 />
+                {Object.entries(taskMap).map(([task]) => (
+                  <Bar key={task} dataKey={task} stackId="a" fill={getRandomColor()} />
+                ))}
 
-                {initializedDataForNameBased.map((data) => {
-                  const taskNames = data.dayTasks.map((task) => task.name);
-                  return taskNames.map((taskName) => (
-                    <Bar
-                      key={`${data.date}-${taskName}`}
-                      dataKey={(entry) => {
-                        const task = entry.dayTasks.find(
-                          (t) => t.name === taskName,
-                        );
-                        return task ? task.duration : 0;
-                      }}
-                      stackId="a"
-                      fill={getRandomColor()}
-                      radius={[0, 0, 4, 4]}
-                    ></Bar>
-                  ));
-                })}
+               
 
                 <ChartTooltip
                   content={<ChartTooltipContent />}
