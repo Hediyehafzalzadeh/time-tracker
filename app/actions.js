@@ -18,7 +18,7 @@ export async function getTasks(){
         }
     }
 
-    export async function getTasksInWeek(){
+export async function getTasksInWeek(){
         try{
             const supabase = await createClient();
             const oneWeekAgo = new Date();
@@ -120,6 +120,7 @@ export async function deleteTask(task ) {
     const { data , error } = await supabase.from("tasks").delete().eq("id" , task.id)
     .select()
     .single();
+    return {name: data.name , duration: data.duration} ;
  
     
 
@@ -195,7 +196,8 @@ export async function addCategory(category) {
             }
     const { data , error } = await supabase.from("categories").upsert({
         user_id : user.id,
-        name : category , 
+        name : category.name , 
+        color : category.color || "hsl(0, 0%, 80%)",
         created_at : new Date().toISOString()
 
     }, { onConflict: 'user_id,name' })

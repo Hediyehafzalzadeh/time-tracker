@@ -11,11 +11,11 @@ import ManualDialog from "./ManualDialog";
 import ConfirmationDialog from "./ConfirmationDialog";
 import { set } from "date-fns";
 import EditTaskDialog from "./EditTaskDialog";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import AddCategories from "./AddCategories";
 
-const Logger = ({ user, userTasks , categories}) => {
+const Logger = ({ user, userTasks, categories }) => {
   const [isRunning, setIsRunning] = useState(false);
   const [counter, setCounter] = useState(0);
   const [tasks, setTasks] = useState([]);
@@ -24,6 +24,7 @@ const Logger = ({ user, userTasks , categories}) => {
   const [loading, setLoading] = useState(false);
   const [manualDialogOpen, setManualDialogOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [totalTime, setTotalTime] = useState(0);
 
   useEffect(() => {
     if (!isRunning) return;
@@ -93,11 +94,19 @@ const Logger = ({ user, userTasks , categories}) => {
   };
 
   const calculateTime = async () => {
-    if (localStorage.getItem("saved") === "true") return;
+
+    if (localStorage.getItem("saved") === "true") return null;
+
     if (!currentTaskName) {
       toast("set a name for your task ");
       return null;
     }
+
+    if (totalTime + counter > 24 * 3600) {
+      toast("Total time for the day cannot exceed 24 hours");
+      return null;
+    }
+
     let currentDuration = 0;
     if (isRunning) {
       currentDuration = stopTimer();
@@ -106,9 +115,9 @@ const Logger = ({ user, userTasks , categories}) => {
     console.log("time entries :", timeEntries);
     let sum = timeEntries.reduce((acc, t) => acc + t, 0);
 
-    if (currentDuration) {
-      sum += currentDuration;
-    }
+    // if (currentDuration) {
+    //   sum += currentDuration;
+    // }
 
     console.log("TOTAL DURATION:", sum);
     saveTask(sum);
@@ -117,6 +126,14 @@ const Logger = ({ user, userTasks , categories}) => {
     localStorage.setItem("saved", true);
     localStorage.removeItem("counter");
     setCounter(0);
+  };
+
+  const calculateTotalTime = () => {
+    const total = tasks
+      .map((task) => task.duration)
+      .reduce((acc, duration) => acc + duration, 0);
+    setTotalTime(total);
+    return total;
   };
 
   const saveTask = async (duration) => {
@@ -157,15 +174,21 @@ const Logger = ({ user, userTasks , categories}) => {
   const deleteTaskHandler = async (task) => {
     setLoading(true);
     const res = await deleteTask(task);
-    console.log(res);
-    setTasks(
-      tasks.filter(
-        (t) =>
-          t.name !== task.name ||
-          t.duration !== task.duration ||
-          t.tag !== task.tag,
-      ),
-    );
+    if (!res) {
+      toast("Failed to delete task");
+      setLoading(false);
+      return;
+    } else {
+      setTasks(
+        tasks.filter(
+          (t) =>
+            t.name !== task.name ||
+            t.duration !== task.duration ||
+            t.tag !== task.tag,
+        ),
+      );
+    }
+
     setLoading(false);
   };
 
@@ -190,6 +213,11 @@ const Logger = ({ user, userTasks , categories}) => {
     setLoading(false);
   };
 
+  const findCategortyColor = (categoryName) => {
+    const category = categories.find((c) => c.name === categoryName);
+    console.log(category);
+    return category ? category.color : "hsl(0, 0%, 80%)";
+  }
 
 
   return (
@@ -197,8 +225,10 @@ const Logger = ({ user, userTasks , categories}) => {
       <div className="flex basis-1/2 h-full text-center mx-auto mb-5 bg-mauve-100 p-5 rounded-lg  ">
         <div>
           <Field className="w-64 m-10 ">
-            <FieldLabel className="font-semibold" htmlFor="input-demo-api-key">Task's Name</FieldLabel>
-            
+            <FieldLabel className="font-semibold" htmlFor="input-demo-api-key">
+              Task's Name
+            </FieldLabel>
+
             <Input
               required
               value={currentTaskName}
@@ -206,7 +236,11 @@ const Logger = ({ user, userTasks , categories}) => {
               placeholder={"Task's name ..."}
             ></Input>
           </Field>
-          <AddCategories categories={categories} currentTaskTag={currentTaskTag} setCurrentTaskTag={setCurrentTaskTag} />
+          <AddCategories
+            categories={categories}
+            currentTaskTag={currentTaskTag}
+            setCurrentTaskTag={setCurrentTaskTag}
+          />
           <ManualDialog
             className=""
             open={!!manualDialogOpen}
@@ -263,12 +297,7 @@ const Logger = ({ user, userTasks , categories}) => {
       <div className="md:text-left md:text-xl text-sm flex flex-col basis-1/2 h-full my-auto text-xl bg-mauve-100 p-5 rounded-lg mx-auto  ">
         <p className="text-center    bg-rose-100 font-bold text-red-500">
           {tasks.length > 0
-            ? "total time : " +
-              convertToRealFormat(
-                tasks
-                  .map((task) => task.duration)
-                  .reduce((acc, duration) => acc + duration),
-              )
+            ? "total time : " + convertToRealFormat(calculateTotalTime())
             : ""}
         </p>
         <div className="font-bold flex flex-row text-violet-500 mb-5">
@@ -286,8 +315,9 @@ const Logger = ({ user, userTasks , categories}) => {
                 <Timer className="mx-3 text-gray-500" />
 
                 <p className="text-2xl mr-5">{task.name} </p>
-                {task.tag && (
-                  <span className="text-sm text-gray-700 bg-red-200 rounded-full px-2 py-1">
+                {
+                task.tag && (
+                  <span style={{ backgroundColor: findCategortyColor(task.tag) }} className={`text-sm text-gray-700 rounded-full px-2 py-1`}>
                     {task.tag}
                   </span>
                 )}

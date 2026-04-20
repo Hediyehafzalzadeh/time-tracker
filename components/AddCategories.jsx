@@ -23,17 +23,29 @@ const AddCategories = ({ categories, currentTaskTag, setCurrentTaskTag }) => {
 
   const handleAddCategory = async () => {
     if (newCategory.trim() === "") return null;
-    const res = await addCategory(newCategory);
+
+    let newCat = {
+      name : newCategory ,
+      color : getRandomColor() ,
+    }
+    const res = await addCategory(newCat);
     if(currentCategories.includes(newCategory)) {
     setNewCategory("");
     inputRef.current?.blur()
     return null ;} 
-    let updatedCategories = [...currentCategories , newCategory];
+    let updatedCategories = [...currentCategories , newCat];
     setCurrentCategories(updatedCategories);
     setNewCategory("");
     inputRef.current?.blur();
 
   };
+
+    const getRandomColor = () => {
+    const hue = Math.floor(Math.random() * 360);
+    return `hsl(${hue}, 70%, 60%)`;
+  };
+
+
 
   return (
     <div>
@@ -56,7 +68,7 @@ const AddCategories = ({ categories, currentTaskTag, setCurrentTaskTag }) => {
         </Combobox>
         <div className="flex gap-3 ">
           <Input className="flex-col basis-3/4" value={newCategory} onChange={(e) => setNewCategory(e.target.value)}></Input>
-          <Button variant="outline" size="sm" className="bg-white text-black text-xs" onClick={ handleAddCategory}>+ Add a category</Button></div>
+          <Button variant="outline" size="sm" className="bg-white text-black text-xs" onClick={handleAddCategory}>+ Add a category</Button></div>
       </Field>
     </div>
   );

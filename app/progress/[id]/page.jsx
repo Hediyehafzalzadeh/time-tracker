@@ -1,19 +1,25 @@
 "use client";
 
-import {  getTasksInWeek } from "@/app/actions";
+import {  getCategories, getTasksInWeek } from "@/app/actions";
 import ProgressChart from "@/components/ProgressChart";
 import { Button } from "@/components/ui/button";
+import { set } from "date-fns";
 import React, { useEffect } from "react";
 
 
 const page =  () => {
     const [taskData, setTaskData] = React.useState([]);
+    const [categories, setCategories] = React.useState([]);
+
 
 
     useEffect(() => {
         const fetchTasks = async () => {
             const Data = await getTasksInWeek();
+            const cats = await getCategories();
+            setCategories(cats);
             setTaskData(Data);
+            
         };
         fetchTasks();
         
@@ -33,7 +39,7 @@ const page =  () => {
       </header>
 
       <div className=" m-10 ">
-        <ProgressChart tasks={taskData} />
+        <ProgressChart tasks={taskData} categories={categories} />
         
       </div>
     </>
