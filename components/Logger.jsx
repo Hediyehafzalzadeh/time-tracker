@@ -25,6 +25,7 @@ const Logger = ({ user, userTasks, categories }) => {
   const [manualDialogOpen, setManualDialogOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [totalTime, setTotalTime] = useState(0);
+  const [existingTask, setExistingTask] = useState(null);
 
   useEffect(() => {
     if (!isRunning) return;
@@ -62,6 +63,7 @@ const Logger = ({ user, userTasks, categories }) => {
   useEffect(() => {
     setTasks(userTasks);
   }, []);
+
 
   useEffect(() => {
     const startTime = localStorage.getItem("startedAt");
@@ -161,6 +163,7 @@ const Logger = ({ user, userTasks, categories }) => {
       toast("set a name for your task ");
       return null;
     }
+    
     let newTask = {
       name: currentTaskName,
       duration: duration,
@@ -169,13 +172,27 @@ const Logger = ({ user, userTasks, categories }) => {
     setCurrentTaskName("");
     setCurrentTaskTag("");
     setLoading(true);
-    const res = await addTask(newTask);
+    if(existingTask !== null){
+   
+      const res = await updateTask(existingTask , newTask);
+      setTasks([
+      ...tasks,
+      { name: res.name, duration: res.duration, tag: res.tag },
+    ]);
+      toast("Task updated successfully");
+
+
+    }else{
+      const res = await addTask(newTask);
     setTasks([
       ...tasks,
       { name: res.name, duration: res.duration, tag: res.tag },
     ]);
     toast("Task saved successfully");
 
+    }
+
+    
     console.log(res);
     console.log(newTask);
     setLoading(false);
@@ -238,9 +255,21 @@ const Logger = ({ user, userTasks, categories }) => {
     return category ? category.color : "hsl(0, 0%, 80%)";
   };
 
+  const resumeTask = (task) =>{
+    resetTimer();
+    setCurrentTaskName(task.name);
+    setCurrentTaskTag(task.tag);
+    setCounter(task.duration);
+    setExistingTask(task);
+    localStorage.setItem("saved", false);
+    localStorage.setItem("timeEntries", JSON.stringify([task.duration]));
+    localStorage.setItem("counter", task.duration);
+    
+  } 
+
   return (
     <div className="mx-auto flex max-w-7xl mx-auto items-stretch my-10 text-2xl gap-5 h-auto flex-col md:flex-row">
-      <div className="flex basis-1/2 h-full text-center mx-auto mb-5 bg-mauve-100 p-5 rounded-lg  ">
+      <div className="flex basis-1/3 h-full text-center mx-auto mb-5 bg-mauve-100 p-5 rounded-lg  ">
         <div>
           <Field className="w-64 m-10 ">
             <FieldLabel className="font-semibold" htmlFor="input-demo-api-key">
@@ -312,8 +341,8 @@ const Logger = ({ user, userTasks, categories }) => {
         </div>
       </div>
 
-      <div className="md:text-left md:text-xl text-sm flex flex-col basis-1/2 h-full my-auto text-xl bg-mauve-100 p-5 rounded-lg mx-auto  ">
-        <p className="text-center    bg-rose-100 font-bold text-red-500">
+      <div className="md:text-left md:text-xl text-sm flex flex-col basis-2/3 h-full my-auto text-xl bg-mauve-100 p-5 rounded-lg mx-auto  ">
+        <p className="text-center bg-rose-100 font-bold text-red-500">
           {tasks.length > 0
             ? "total time : " + convertToRealFormat(calculateTotalTime())
             : ""}
@@ -323,7 +352,7 @@ const Logger = ({ user, userTasks, categories }) => {
           <p className="basis-1/2 text-right mr-10">Duration </p>
         </div>
 
-        <div className="flex flex-col ml-5 gap-2">
+        <div className="flex flex-col ml-5 gap-2 ">
           {tasks.map((task) => (
             <div
               className="flex flex-row bg-white p-2 rounded-lg"
@@ -332,11 +361,11 @@ const Logger = ({ user, userTasks, categories }) => {
               <div className="flex flex-row basis-1/2 items-center">
                 <Timer className="mx-3 text-gray-500" />
 
-                <p className="text-2xl mr-5">{task.name} </p>
+                <p className="text-2xl mr-5 text-sm">{task.name} </p>
                 {task.tag && (
                   <span
                     style={{ backgroundColor: findCategortyColor(task.tag) }}
-                    className={`text-sm text-gray-700 rounded-full px-2 py-1`}
+                    className={`text-xs text-gray-700 rounded-full px-2 py-1`}
                   >
                     {task.tag}
                   </span>
@@ -347,6 +376,14 @@ const Logger = ({ user, userTasks, categories }) => {
                   {convertToRealFormat(task.duration)}
                 </p>
               </div>
+              <Button
+                onClick={() => resumeTask(task)}
+                variant="outline"
+                size="lg"
+                className="ml-5 bg-green-200 rounded-full"
+              >
+                <Play />
+              </Button>
               <ConfirmationDialog
                 open={confirmOpen}
                 onClose={() => setConfirmOpen(false)}
@@ -355,6 +392,7 @@ const Logger = ({ user, userTasks, categories }) => {
               <EditTaskDialog
                 task={task}
                 open={confirmOpen}
+                categories={categories}
                 onClose={() => setConfirmOpen(false)}
                 onConfirm={() => setConfirmOpen(false)}
                 onAdd={(updatedTask) => {

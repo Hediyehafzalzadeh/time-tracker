@@ -13,8 +13,9 @@ import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Edit } from "lucide-react";
+import AddCategories from "./AddCategories";
 
-const EditTaskDialog = ({task , onAdd , onClose , onConfirm}) => {
+const EditTaskDialog = ({task , onAdd , onClose , onConfirm , categories}) => {
     const [startedAt, setStartedAt] = React.useState("");
     const [finishedAt, setFinishedAt] = React.useState("");
     const [currentTaskName, setCurrentTaskName] = React.useState("");
@@ -45,7 +46,7 @@ const EditTaskDialog = ({task , onAdd , onClose , onConfirm}) => {
             <Button
               size="lg"
               variant="outline"
-              className="rounded-full bg-green-200"
+              className="rounded-full bg-orange-200"
             >
               <Edit />
             </Button>
@@ -60,8 +61,7 @@ const EditTaskDialog = ({task , onAdd , onClose , onConfirm}) => {
                 <Input onChange={(e) => setCurrentTaskName(e.target.value)} id="name-1" name="name" defaultValue={task.name} />
               </Field>
               <Field>
-                <Label htmlFor="username-1">Tag</Label>
-                <Input onChange={(e) => setCurrentTaskTag(e.target.value)} id="username-1" name="tag" defaultValue={task.tag} />
+                <AddCategories categories={categories} currentTaskTag={currentTaskTag} setCurrentTaskTag={setCurrentTaskTag} />
               </Field>
               <Field>
                 <Label htmlFor="started-at">Started at</Label>

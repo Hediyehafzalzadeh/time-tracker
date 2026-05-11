@@ -19,6 +19,7 @@ const AddCategories = ({ categories, currentTaskTag, setCurrentTaskTag }) => {
   const [currentCategories, setCurrentCategories] = React.useState([]);
   const [newCategory, setNewCategory] = React.useState("");
   const inputRef = React.useRef(null);
+  
 
   useEffect(() => {
     setCurrentCategories(categories.map((category) => category));

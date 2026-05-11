@@ -18,17 +18,17 @@ export async function getTasks(){
         }
     }
 
-export async function getTasksInWeek(){
+export async function getTasksInWeek(date){
         try{
             const supabase = await createClient();
-            const oneWeekAgo = new Date();
+            const oneWeekAgo = new Date(date);
             oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
             const { data , error } = await supabase.from("tasks").select("*").gte("created_at", oneWeekAgo.toISOString()).order("created_at" , {ascending : false});
             if (error) throw error ; 
             return data || [] ; 
 
         }catch ( error) {
-            console.error("Get tasks error :" , error) ;
+            console.error("Get tasks in week error :" , error) ;
             return [] ; 
         }
     }

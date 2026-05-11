@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { use, useEffect } from "react";
 import { Bar, BarChart, XAxis } from "recharts";
 import {
   Card,
@@ -15,24 +15,26 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Button } from "./ui/button";
-export const description = "A stacked bar chart with a legend";
-export const iframeHeight = "600px";
-export const containerClassName =
-  "[&>div]:w-full [&>div]:max-w-md flex items-center justify-center min-h-svh";
 
 const chartConfig = {};
 
-const ProgressChart = ({ tasks, categories }) => {
+const ProgressChart = ({ tasks, categories , dateToGet, setDateToGet }) => {
   const categoryMap = {};
   const taskMap ={};
-
   const [activeButton, setActiveButton] = React.useState(null);
-  const chartData = tasks.map((t) => ({
+  const [chartData, setChartData] = React.useState([]);
+  useEffect(() => {
+    if ( tasks.length > 0) {
+      setChartData(tasks.map((t) => ({
     date: new Date(t.created_at),
     name: t.name,
     duration: t.duration / 1000,
     category: t.tag,
-  }));
+  })))
+
+  }}, [tasks]);
+
+  
 
   const getRandomColor = () => {
     const hue = Math.floor(Math.random() * 360);
@@ -128,6 +130,12 @@ const ProgressChart = ({ tasks, categories }) => {
 
   return (
     <div>
+      <div className="bg-gray-300"> </div>
+      <Button onClick={() =>{
+         () => setDateToGet(new Date(dateToGet.setDate(dateToGet.getDate() - 7)))}} className="m-4 p-2 bg-red-100 hover:bg-red-200 text-black mx-auto">
+        previous week
+
+      </Button>
       <Button
         onClick={() => {
           makeChartBasedOnCategories();
@@ -144,6 +152,10 @@ const ProgressChart = ({ tasks, categories }) => {
         className="m-4  p-2 bg-violet-100 hover:bg-violet-200 text-black mx-auto"
       >
         Progress Chart - Based on names
+      </Button>
+      <Button onClick={() => setDateToGet(new Date(dateToGet.setDate(dateToGet.getDate() + 7)))} className="m-4 p-2 bg-red-100 hover:bg-red-200 text-black mx-auto">
+        next week
+
       </Button>
 
       {(!tasks || tasks.length === 0) && <div>Loading...</div>}
